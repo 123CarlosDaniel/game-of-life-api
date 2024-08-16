@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from models.CommentModel import CommentModel
+from fastapi import HTTPException
 
 
 def post_comment(creationId: str, comment: CommentModel, userId: str, db: Session):
@@ -11,7 +12,7 @@ def post_comment(creationId: str, comment: CommentModel, userId: str, db: Sessio
                           {"id": creationId}).fetchone()
 
     if not creation:
-      return {"error": "Not found"}, 404
+      raise HTTPException(404, "Not found")
 
     commentId = cuid_generator.generate()
     db.execute(text("""INSERT INTO comment (id, opinion, ownerId, creationId)
@@ -27,7 +28,7 @@ def delete_comment(commentId: str, userId: str, db: Session):
   comment = db.execute(text("SELECT 1 FROM comment WHERE id = :id and ownerId = :userId"),
                         {"id": commentId, "userId": userId}).fetchone()
   if not comment:
-    return {"error": "Not found"}, 404
+    raise HTTPException(404, "Not found")
   
   db.execute(text("DELETE FROM comment WHERE id = :id"), {"id": commentId})
   db.commit()
@@ -37,7 +38,7 @@ def update_comment(commentId: str, comment: CommentModel, userId: str, db: Sessi
   commentFound = db.execute(text("SELECT 1 FROM comment WHERE id = :id and ownerId = :userId"),
                         {"id": commentId, "userId": userId}).fetchone()
   if not commentFound:
-    return {"error": "Not found"}, 404 
+    raise HTTPException(404, "Not found")
 
   db.execute(text("""UPDATE comment SET opinion = :opinion WHERE id = :id"""), 
              {"opinion": comment.opinion, "id": commentId})

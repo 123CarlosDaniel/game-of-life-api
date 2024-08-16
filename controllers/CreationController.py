@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from utils.generateId import cuid_generator
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException
 
 
 def get_creations(db: Session):
@@ -20,6 +21,8 @@ def get_creations(db: Session):
 def get_creation(id: str, db: Session):
   result = db.execute(
     text("SELECT * FROM CREATION WHERE id = :id"), {"id": id}).fetchone()
+  if not result:
+    raise HTTPException(404, "Not found")
   creation = {
     "id": result.id,
     "ownerId": result.ownerId,
@@ -34,7 +37,7 @@ def get_creations_by_owner(ownerId: str, db: Session):
   user = db.execute(text("select 1 from user where id = :id"),
                     {"id": ownerId}).fetchone()
   if not user:
-    return {"error": "User not found"}, 404
+    raise HTTPException(404, "Not found")
   result = db.execute(text(
     "SELECT * FROM creation where ownerId = :ownerId"), {"ownerId": ownerId}).fetchall()
   creations = [
@@ -65,14 +68,14 @@ def post_creation(creation, userId, db: Session):
     return {"id": creationId, "message": "Created successfully"}
   except SQLAlchemyError as e:
     db.rollback()
-    return {"error", str(e)}, 500
+    raise HTTPException(500, "Internal server error")
 
 
 def update_creation(id, creation, userId, db: Session):
   creation_found = db.execute(text("SELECT 1 FROM creation WHERE id = :id AND ownerId = :ownerId"),
                               {"id": id, "ownerId": userId}).fetchone()
   if not creation_found:
-    return {"error": "Not found"}, 404
+    raise HTTPException(404, "Not found")
 
   db.execute(text("""
                   UPDATE creation SET title = :title, description = :description, data = :data
@@ -87,7 +90,7 @@ def delete_creation(id, userId, db: Session):
   creation_found = db.execute(text("SELECT 1 FROM creation WHERE id = :id AND ownerId = :ownerId"),
                               {"id": id, "ownerId": userId}).fetchone()
   if not creation_found:
-    return {"message": "Not found"}, 204
+    raise HTTPException(404, "Not found")
 
   db.execute(text("DELETE FROM creation WHERE id = :id"), {"id": id})
 
