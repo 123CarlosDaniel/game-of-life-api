@@ -50,11 +50,6 @@ def get_creations_by_owner(ownerId: str, db: Session):
 
 def post_creation(creation, userId, db: Session):
   try:
-    user = db.execute(text("select 1 from user where id = :id"), {
-                      "id": userId}).fetchone()
-    if not user:
-      return {"error": "User not found"}, 404
-
     creationId = cuid_generator.generate()
     db.execute(
       text("""INSERT INTO creation (id, ownerId, title, description, data) 

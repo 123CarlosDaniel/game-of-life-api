@@ -7,8 +7,8 @@ from models.CommentModel import CommentModel
 
 def post_comment(creationId: str, comment: CommentModel, userId: str, db: Session):
   try:
-    creation = db.execute(text("SELECT 1 FROM creation WHERE id = :id and ownerId = :userId"),
-                          {"id": creationId, "userId": userId}).fetchone()
+    creation = db.execute(text("SELECT 1 FROM creation WHERE id = :id"),
+                          {"id": creationId}).fetchone()
 
     if not creation:
       return {"error": "Not found"}, 404
