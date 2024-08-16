@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from config.db import get_db
-from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation
+from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation
 from models.CreationModel import CreationCreateModel
 from dependencies.getUser import get_current_user
 
@@ -40,3 +40,11 @@ def creation_update(
   current_user: dict = Depends(get_current_user),
   db: Session = Depends(get_db)):
   return update_creation(id, creation, current_user.get("id"), db)
+
+
+@router.delete("/{id}")
+def creation_delete(
+  id: str,
+  current_user: dict = Depends(get_current_user),
+  db: Session = Depends(get_db)):
+  return delete_creation(id, current_user.get("id"), db)

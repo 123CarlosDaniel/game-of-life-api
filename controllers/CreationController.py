@@ -86,3 +86,15 @@ def update_creation(id, creation, userId, db: Session):
 
   db.commit()
   return {"message": "Updated successfully"}
+
+
+def delete_creation(id, userId, db: Session):
+  creation_found = db.execute(text("SELECT 1 FROM creation WHERE id = :id AND ownerId = :ownerId"),
+                              {"id": id, "ownerId": userId}).fetchone()
+  if not creation_found:
+    return {"message": "Not found"}, 204
+
+  db.execute(text("DELETE FROM creation WHERE id = :id"), {"id": id})
+
+  db.commit()
+  return {"message": "Deleted successfully"}
