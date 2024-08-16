@@ -22,3 +22,25 @@ def post_comment(creationId: str, comment: CommentModel, userId: str, db: Sessio
   except SQLAlchemyError as e:
     db.rollback()
     return {"error", str(e)}, 500
+
+def delete_comment(commentId: str, userId: str, db: Session):
+  comment = db.execute(text("SELECT 1 FROM comment WHERE id = :id and ownerId = :userId"),
+                        {"id": commentId, "userId": userId}).fetchone()
+  if not comment:
+    return {"error": "Not found"}, 404
+  
+  db.execute(text("DELETE FROM comment WHERE id = :id"), {"id": commentId})
+  db.commit()
+  return {"message": "Deleted successfully"}
+
+def update_comment(commentId: str, comment: CommentModel, userId: str, db: Session):
+  commentFound = db.execute(text("SELECT 1 FROM comment WHERE id = :id and ownerId = :userId"),
+                        {"id": commentId, "userId": userId}).fetchone()
+  if not commentFound:
+    return {"error": "Not found"}, 404 
+
+  db.execute(text("""UPDATE comment SET opinion = :opinion WHERE id = :id"""), 
+             {"opinion": comment.opinion, "id": commentId})
+
+  db.commit()
+  return {"message": "Updated successfully"}
