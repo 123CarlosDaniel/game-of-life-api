@@ -8,9 +8,9 @@ from dependencies.getUser import get_current_user
 router = APIRouter(prefix="/creation")
 
 
-@router.get("")
-def creation_get(db: Session = Depends(get_db)):
-  return get_creations(db)
+@router.get("/all")
+def creations_get(page_number: int = 1, per_page: int = 10, sort_by: str = "asc", db: Session = Depends(get_db)):
+  return get_creations(db, page_number, per_page, sort_by)
 
 
 @router.get("/{id}")
@@ -19,7 +19,7 @@ def creation_get(id, db: Session = Depends(get_db)):
 
 
 @router.get("")
-def creation_by_owner(
+def creations_by_owner(
   ownerId: str,
   db: Session = Depends(get_db)):
   return get_creations_by_owner(ownerId, db)

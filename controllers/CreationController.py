@@ -5,17 +5,32 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
 
-def get_creations(db: Session):
-  result = db.execute(text("SELECT * FROM creation")).fetchall()
-  creations = [
-    {
-        "id": creation.id,
-        "ownerId": creation.ownerId,
-        "title": creation.title,
-        "description": creation.description,
-        "data": creation.data
-    } for creation in result]
-  return creations
+def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
+  try:
+    result = db.execute(text("CALL creations_get_sp(:page_number, :per_page, :sort_by, @pages)"),
+                        {"page_number": page_number, "per_page": per_page, "sort_by": sort_by})
+    pages = db.execute(text("SELECT @pages")).scalar()
+    creations = result.fetchall()
+    creations = [
+      {
+          "id": creation.creation_id,
+          "ownerId": creation.owner_id,
+          "ownerName": creation.owner_name,
+          "ownerImage": creation.owner_image,
+          "title": creation.title,
+          "description": creation.description,
+          "data": creation.data,
+          "createdAt": creation.creation_createdAt,
+          "updatedAt": creation.creation_updatedAt,
+          "reactions": creation.reaction_count,
+          "comments": creation.comments
+      } for creation in creations]
+    return {
+      "data": creations,
+      "pages": pages
+    }
+  except SQLAlchemyError as e:
+    raise HTTPException(500, "Internal server error")
 
 
 def get_creation(id: str, db: Session):
