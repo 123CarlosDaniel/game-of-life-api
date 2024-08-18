@@ -21,7 +21,9 @@ def creations_get(
 
 
 @router.get("/{id}")
-def creation_get(id, db: Session = Depends(get_db)):
+def creation_get(
+  id: str,
+  db: Session = Depends(get_db)):
   return get_creation(id, db)
 
 
