@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from config.db import get_db
 from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation
-from models.CreationModel import CreationCreateModel
+from models.request.CreationModel import CreationCreateModel
+from models.response.CreationGetAllModel import CreationGetAllModel
+from models.common.ErrorResponseModel import ErrorResponse
 from dependencies.getUser import get_current_user
 
 router = APIRouter(prefix="/creation")
 
-
-@router.get("/all")
-def creations_get(page_number: int = 1, per_page: int = 10, sort_by: str = "asc", db: Session = Depends(get_db)):
+@router.get("/all", response_model=CreationGetAllModel, responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"}
+})
+def creations_get(
+  page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
+  per_page: int = Query(10, description="Number of creations per page, must be >= 1", ge=1),
+  sort_by: str = Query("asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
+  db: Session = Depends(get_db)):
   return get_creations(db, page_number, per_page, sort_by)
 
 

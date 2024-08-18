@@ -19,11 +19,10 @@ def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
           "ownerImage": creation.owner_image,
           "title": creation.title,
           "description": creation.description,
-          "data": creation.data,
           "createdAt": creation.creation_createdAt,
           "updatedAt": creation.creation_updatedAt,
-          "reactions": creation.reaction_count,
-          "comments": creation.comments
+          "reactions": creation.reactions_count,
+          "comments": creation.comments_count
       } for creation in creations]
     return {
       "data": creations,

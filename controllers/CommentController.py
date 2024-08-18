@@ -2,7 +2,7 @@ from utils.generateId import cuid_generator
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from models.CommentModel import CommentModel
+from models.request.CommentModel import CommentModel
 from fastapi import HTTPException
 
 

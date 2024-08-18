@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from config.db import get_db
 from dependencies.getUser import get_current_user
 from controllers.CommentController import post_comment, delete_comment, update_comment
-from models.CommentModel import CommentModel
+from models.request.CommentModel import CommentModel
 
 router = APIRouter(prefix="/comment")
 
