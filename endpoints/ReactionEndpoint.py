@@ -2,7 +2,7 @@ from fastapi import Depends, APIRouter
 from sqlalchemy.orm import Session
 from config.db import get_db
 from dependencies.getUser import get_current_user
-from models.request.ReactionModel import ReactionModel
+from models.request import ReactionModel
 from controllers.ReactionController import post_reaction, delete_reaction, delete_reaction_by_creation
 
 router = APIRouter(prefix="/reaction")

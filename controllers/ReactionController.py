@@ -3,7 +3,7 @@ from sqlalchemy import text
 from utils.generateId import cuid_generator
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from models.request.ReactionModel import ReactionModel
+from models.request import ReactionModel
 
 
 def post_reaction(creationId: str, reaction: ReactionModel, userId: str, db: Session):

@@ -2,14 +2,15 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from config.db import get_db
 from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation
-from models.request.CreationModel import CreationCreateModel
-from models.response.CreationGetAllModel import CreationGetAllModel
-from models.common.ErrorResponseModel import ErrorResponse
+from models.response import CreationGetAllModel
+from models.request import CreationCreateModel
+from models.common import GetResponseModel, ErrorResponse
+
 from dependencies.getUser import get_current_user
 
 router = APIRouter(prefix="/creation")
 
-@router.get("/all", response_model=CreationGetAllModel, responses={
+@router.get("/all", response_model=GetResponseModel[CreationGetAllModel], responses={
   500: {"model": ErrorResponse, "description": "Internal server error"}
 })
 def creations_get(
