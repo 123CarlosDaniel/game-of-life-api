@@ -3,6 +3,6 @@ from pydantic import BaseModel
 
 T = TypeVar('T')
 
-class GetResponseModel(BaseModel, Generic[T]):
+class GetListResponseModel(BaseModel, Generic[T]):
   data: List[T]
   pages: int

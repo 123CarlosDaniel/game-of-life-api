@@ -1,2 +1,2 @@
 from .ErrorResponseModel import ErrorResponse
-from .GetResponseModel import GetResponseModel
+from .GetResponseModel import GetListResponseModel

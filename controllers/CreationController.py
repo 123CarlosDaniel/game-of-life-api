@@ -40,6 +40,7 @@ def get_creation(id: str, db: Session):
     "id": result.creation_id,
     "ownerId": result.owner_id,
     "ownerName": result.owner_name,
+    "ownerImage": result.owner_image,
     "title": result.title,
     "description": result.description,
     "createdAt": str(result.creation_createdAt),
@@ -51,11 +52,12 @@ def get_creation(id: str, db: Session):
   return creation
 
 
-def get_creations_by_owner(ownerId: str, db: Session):
+def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_by: str, db: Session):
   user = db.execute(text("select 1 from user where id = :id"),
                     {"id": ownerId}).fetchone()
   if not user:
     raise HTTPException(404, "Not found")
+
   result = db.execute(text(
     "SELECT * FROM creation where ownerId = :ownerId"), {"ownerId": ownerId}).fetchall()
   creations = [
