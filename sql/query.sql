@@ -134,3 +134,41 @@ set @sql_query = concat(
     EXECUTE stmt USING @id; 
     DEALLOCATE PREPARE stmt;
 END
+
+-- % CreationsGetByOwner Stored Procedure
+CREATE DEFINER=`root`@`localhost` PROCEDURE `creations_get_by_owner_sp`(
+ in id varchar(191) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+ in page_number int, 
+ in per_page int, 
+ in sort_name varchar(4),
+ out pages int)
+BEGIN
+	declare total_rows int default 0;
+    set @id = id;
+    select COUNT(*) into total_rows from creation WHERE ownerId = id;
+    set pages = Pages(total_rows, per_page);
+    
+    set @sql_query = concat(
+    'SELECT c.id as creation_id, ',
+    'uc.id as owner_id, ',
+    'uc.name as owner_name, ',
+    'uc.image as owner_image, ',
+    'c.title, ',
+    'c.description, ', 
+    'c.createdAt as creation_createdAt, ', 
+    'c.updatedAt as creation_updatedAt, ',
+    'COUNT(r.id) as reactions_count, ',
+    'COUNT(cm.id) AS comments_count ',
+    ' FROM creation c ',
+    'LEFT JOIN comment cm ON c.id = cm.creationId ',
+    'LEFT JOIN reaction r ON c.id = r.creationId ', 
+    'LEFT JOIN user uc ON c.ownerId = uc.id ',
+    'WHERE c.ownerId = ? ',
+    'GROUP BY c.id, c.title, c.description, c.createdAt, c.updatedAt ',
+	OrderByClause('c','updatedAt', sort_name),
+    LimitClause(page_number, per_page));
+
+    prepare stmt FROM @sql_query;
+	execute stmt USING @id;
+    DEALLOCATE PREPARE stmt;
+END
