@@ -6,7 +6,7 @@ from models.response import CreationGetAllModel, CreationGetModel
 from models.request import CreationCreateModel
 from models.common import GetListResponseModel, ErrorResponse, PostResponseModel
 
-from dependencies.getUser import get_current_user
+from dependencies.getUser import get_current_user, get_current_user_optional
 
 router = APIRouter(prefix="/creation")
 
@@ -17,8 +17,9 @@ def creations_get(
   page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
   per_page: int = Query(10, description="Number of creations per page, must be >= 1", ge=1),
   sort_by: str = Query("asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
+  current_user: dict = Depends(get_current_user_optional),
   db: Session = Depends(get_db)):
-  return get_creations(db, page_number, per_page, sort_by)
+  return get_creations(db, current_user.get("id"), page_number, per_page, sort_by)
 
 
 @router.get("/{id}", response_model=CreationGetModel, responses={

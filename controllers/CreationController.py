@@ -6,10 +6,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
 
-def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
+def get_creations(db: Session, userId: str | None, page_number: int, per_page: int, sort_by: str):
   try:
-    result = db.execute(text("CALL creations_get_sp(:page_number, :per_page, :sort_by, @pages)"),
-                        {"page_number": page_number, "per_page": per_page, "sort_by": sort_by})
+    result = db.execute(text("CALL creations_get_sp(:userId, :page_number, :per_page, :sort_by, @pages)"),
+                        {"userId": userId, "page_number": page_number, "per_page": per_page, "sort_by": sort_by})
     pages = db.execute(text("SELECT @pages")).scalar()
     creations = result.fetchall()
     creations = [
@@ -23,7 +23,8 @@ def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
           "createdAt": str(creation.creation_createdAt),
           "updatedAt": str(creation.creation_updatedAt),
           "reactions": creation.reactions_count,
-          "comments": creation.comments_count
+          "comments": creation.comments_count,
+          "isReactionActive": bool(creation.isReactionActive)
       } for creation in creations]
     return {
       "data": creations,

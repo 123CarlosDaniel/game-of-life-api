@@ -12,6 +12,7 @@ class CreationGetAllModel(BaseModel):
   updatedAt: str
   reactions: int
   comments: int
+  isReactionActive: bool
 
 
 class CreationGetModel(BaseModel):
