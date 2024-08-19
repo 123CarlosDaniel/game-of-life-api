@@ -4,7 +4,6 @@ from utils.generateId import cuid_generator
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
-
 def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
   try:
     result = db.execute(text("CALL creations_get_sp(:page_number, :per_page, :sort_by, @pages)"),
@@ -19,8 +18,8 @@ def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
           "ownerImage": creation.owner_image,
           "title": creation.title,
           "description": creation.description,
-          "createdAt": creation.creation_createdAt,
-          "updatedAt": creation.creation_updatedAt,
+          "createdAt": str(creation.creation_createdAt),
+          "updatedAt": str(creation.creation_updatedAt),
           "reactions": creation.reactions_count,
           "comments": creation.comments_count
       } for creation in creations]
@@ -34,16 +33,21 @@ def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
 
 def get_creation(id: str, db: Session):
   result = db.execute(
-    text("SELECT * FROM CREATION WHERE id = :id"), {"id": id}).fetchone()
+    text("call creation_get_sp(:id)"), {"id": id}).fetchone()
   if not result:
     raise HTTPException(404, "Not found")
   creation = {
-    "id": result.id,
-    "ownerId": result.ownerId,
+    "id": result.creation_id,
+    "ownerId": result.owner_id,
+    "ownerName": result.owner_name,
     "title": result.title,
     "description": result.description,
-    "data": result.data
+    "createdAt": str(result.creation_createdAt),
+    "updatedAt": str(result.creation_updatedAt),
+    "reactions": result.reactions_count,
+    "comments": result.comments_count
   }
+
   return creation
 
 
