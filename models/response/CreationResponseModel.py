@@ -25,3 +25,4 @@ class CreationGetModel(BaseModel):
   updatedAt: str
   reactions: int
   comments: int
+  commentsList: list[dict]

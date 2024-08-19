@@ -1,3 +1,4 @@
+import json
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from utils.generateId import cuid_generator
@@ -37,6 +38,9 @@ def get_creation(id: str, db: Session):
     text("call creation_get_sp(:id)"), {"id": id}).fetchone()
   if not result:
     raise HTTPException(404, "Not found")
+  comments = json.loads(result.comments) if result.comments else []
+  filtered_comments = [comment for comment in comments if comment["comment_id"] is not None]
+
   creation = {
     "id": result.creation_id,
     "ownerId": result.owner_id,
@@ -47,9 +51,9 @@ def get_creation(id: str, db: Session):
     "createdAt": str(result.creation_createdAt),
     "updatedAt": str(result.creation_updatedAt),
     "reactions": result.reactions_count,
-    "comments": result.comments_count
+    "comments": result.comments_count,
+    "commentsList": filtered_comments
   }
-
   return creation
 
 
