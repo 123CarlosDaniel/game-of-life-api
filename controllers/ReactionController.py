@@ -6,16 +6,16 @@ from fastapi import HTTPException
 from models.request import ReactionModel
 
 
-def post_reaction(creationId: str, reaction: ReactionModel, userId: str, db: Session):
+def post_reaction(creationId: str, userId: str, db: Session):
   creation = db.execute(text("SELECT 1 FROM creation WHERE id = :id"),
                         {"id": creationId}).fetchone()
   if not creation:
     raise HTTPException(404, "Not found")
 
   reactionId = cuid_generator.generate()
-  db.execute(text("""INSERT INTO reaction (id, reaction, ownerId, creationId)
-                    VALUES (:id, :reaction, :userId, :creationId)"""),
-             {"id": reactionId, "reaction": reaction.reaction, "userId": userId, "creationId": creationId})
+  db.execute(text("""INSERT INTO reaction (id, ownerId, creationId)
+                    VALUES (:id, :userId, :creationId)"""),
+             {"id": reactionId, "userId": userId, "creationId": creationId})
   db.commit()
   return {"id": reactionId, "message": "Created successfully"}
 
