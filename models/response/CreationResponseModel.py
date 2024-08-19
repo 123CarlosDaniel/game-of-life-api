@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class CreationGetAllModel(BaseModel):
   id: str
   ownerId: str
@@ -14,14 +15,13 @@ class CreationGetAllModel(BaseModel):
 
 
 class CreationGetModel(BaseModel):
-    id: str
-    ownerId: str
-    ownerName: str
-    ownerImage: str
-    title: str
-    description: str
-    createdAt: str
-    updatedAt: str
-    reactions: int
-    comments: int
-    
+  id: str
+  ownerId: str
+  ownerName: str
+  ownerImage: str
+  title: str
+  description: str
+  createdAt: str
+  updatedAt: str
+  reactions: int
+  comments: int

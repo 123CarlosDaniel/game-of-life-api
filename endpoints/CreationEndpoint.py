@@ -4,7 +4,7 @@ from config.db import get_db
 from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation
 from models.response import CreationGetAllModel, CreationGetModel
 from models.request import CreationCreateModel
-from models.common import GetListResponseModel, ErrorResponse
+from models.common import GetListResponseModel, ErrorResponse, PostResponseModel
 
 from dependencies.getUser import get_current_user
 
@@ -44,7 +44,9 @@ def creations_by_owner(
   return get_creations_by_owner(ownerId, page_number, per_page, sort_by, db)
 
 
-@router.post("")
+@router.post("", response_model=PostResponseModel, responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"}
+})
 def creation_post(
   creation: CreationCreateModel,
   current_user: dict = Depends(get_current_user),
@@ -52,7 +54,10 @@ def creation_post(
   return post_creation(creation, current_user.get("id"), db)
 
 
-@router.put("/{id}")
+@router.put("/{id}", responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"},
+  404: {"model": ErrorResponse, "description": "Not found"}
+})
 def creation_update(
   id: str,
   creation: CreationCreateModel,
@@ -61,7 +66,10 @@ def creation_update(
   return update_creation(id, creation, current_user.get("id"), db)
 
 
-@router.delete("/{id}")
+@router.delete("/{id}", responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"},
+  404: {"model": ErrorResponse, "description": "Not found"}
+})
 def creation_delete(
   id: str,
   current_user: dict = Depends(get_current_user),
