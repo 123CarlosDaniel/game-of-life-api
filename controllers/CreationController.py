@@ -4,6 +4,7 @@ from utils.generateId import cuid_generator
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
+
 def get_creations(db: Session, page_number: int, per_page: int, sort_by: str):
   try:
     result = db.execute(text("CALL creations_get_sp(:page_number, :per_page, :sort_by, @pages)"),
@@ -53,23 +54,41 @@ def get_creation(id: str, db: Session):
 
 
 def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_by: str, db: Session):
-  user = db.execute(text("select 1 from user where id = :id"),
-                    {"id": ownerId}).fetchone()
-  if not user:
-    raise HTTPException(404, "Not found")
+  try:
+    user = db.execute(text("select 1 from user where id = :id"),
+                      {"id": ownerId}).fetchone()
+    if not user:
+      raise HTTPException(404, "Not found")
 
-  result = db.execute(text(
-    "SELECT * FROM creation where ownerId = :ownerId"), {"ownerId": ownerId}).fetchall()
-  creations = [
-    {
-        "id": creation.id,
-        "ownerId": creation.ownerId,
+    result = db.execute(text(
+      "call creations_get_by_owner_sp(:ownerId, :page_number, :per_page, :sort_by, @pages)"),
+        {
+          "ownerId": ownerId,
+          "page_number": page_number,
+          "per_page": per_page,
+          "sort_by": sort_by
+        })
+    pages = db.execute(text("SELECT @pages")).scalar()
+    creations = result.fetchall()
+    creations = [
+      {
+        "id": creation.creation_id,
+        "ownerId": creation.owner_id,
+        "ownerName": creation.owner_name,
+        "ownerImage": creation.owner_image,
         "title": creation.title,
         "description": creation.description,
-        "data": creation.data
-    } for creation in result]
-  return creations
-
+        "createdAt": str(creation.creation_createdAt),
+        "updatedAt": str(creation.creation_updatedAt),
+        "reactions": creation.reactions_count,
+        "comments": creation.comments_count
+      } for creation in creations]
+    return {
+      "data": creations,
+      "pages": pages
+    }
+  except SQLAlchemyError as e:
+    raise HTTPException(500, "Internal server error")
 
 def post_creation(creation, userId, db: Session):
   try:

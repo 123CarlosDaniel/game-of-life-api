@@ -23,7 +23,7 @@ def creations_get(
 
 @router.get("/{id}", response_model=CreationGetModel, responses={
   500: {"model": ErrorResponse, "description": "Internal server error"},
-  404: {"model": ErrorResponse, "description": "Creation not found"}
+  404: {"model": ErrorResponse, "description": "Not found"}
 })
 def creation_get(
   id: str,
@@ -31,7 +31,10 @@ def creation_get(
   return get_creation(id, db)
 
 
-@router.get("")
+@router.get("", response_model=GetListResponseModel[CreationGetAllModel], responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"},
+  404: {"model": ErrorResponse, "description": "Not found"}
+})
 def creations_by_owner(
   ownerId: str,
   page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
