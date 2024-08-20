@@ -34,9 +34,9 @@ def get_creations(db: Session, userId: str | None, page_number: int, per_page: i
     raise HTTPException(500, "Internal server error")
 
 
-def get_creation(id: str, db: Session):
+def get_creation(id: str, userId: str | None, db: Session):
   result = db.execute(
-    text("call creation_get_sp(:id)"), {"id": id}).fetchone()
+    text("call creation_get_sp(:userId, :id)"), {"userId": userId, "id": id}).fetchone()
   if not result:
     raise HTTPException(404, "Not found")
   comments = json.loads(result.comments) if result.comments else []
@@ -53,7 +53,8 @@ def get_creation(id: str, db: Session):
     "updatedAt": str(result.creation_updatedAt),
     "reactions": result.reactions_count,
     "comments": result.comments_count,
-    "commentsList": filtered_comments
+    "commentsList": filtered_comments,
+    "isReactionActive": bool(result.isReactionActive)
   }
   return creation
 

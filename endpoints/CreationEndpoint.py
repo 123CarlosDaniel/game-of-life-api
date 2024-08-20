@@ -28,8 +28,9 @@ def creations_get(
 })
 def creation_get(
   id: str,
+  current_user: dict = Depends(get_current_user_optional),
   db: Session = Depends(get_db)):
-  return get_creation(id, db)
+  return get_creation(id, current_user.get("id"), db)
 
 
 @router.get("", response_model=GetListResponseModel[CreationGetAllModel], responses={
