@@ -42,7 +42,7 @@ BEGIN
 END
 
 
--- Creation stored procedure v2
+--% Creation stored procedure v2
 CREATE DEFINER=`root`@`localhost` PROCEDURE `creations_get_sp`(in page_number int, in per_page int, in sort_name varchar(4), out pages int)
 BEGIN
 	declare total_rows int default 0;
@@ -222,5 +222,109 @@ BEGIN
     
     prepare stmt FROM @sql_query;
 	execute stmt;
+    DEALLOCATE PREPARE stmt;
+END
+
+
+-- % CreationsGetAll Stored Procedure v4
+CREATE DEFINER=`root`@`localhost` PROCEDURE `creations_get_sp`(
+ in userId varchar(191),
+ in page_number int,
+ in per_page int,
+ in sort_name varchar(4), 
+ out pages int)
+BEGIN
+	declare total_rows int default 0;
+    
+    declare is_user_provided boolean default false;
+    if userId is not null then
+		set is_user_provided = true;
+	end if;
+	
+    select COUNT(*) into total_rows from creation;
+    set pages = Pages(total_rows, per_page);
+    set @userId = userId;
+    
+    set @sql_query = concat(
+    'SELECT c.id as creation_id, ',
+    'uc.id as owner_id, ',
+    'uc.name as owner_name, ',
+    'uc.image as owner_image, ',
+    'c.title, ',
+    'c.description, ', 
+    'c.createdAt as creation_createdAt, ', 
+    'c.updatedAt as creation_updatedAt, ',
+    '(select COUNT(r.id) from reaction r where r.creationId = c.id) as reactions_count, ',
+    '(select COUNT(cm.id) from comment cm where cm.creationId = c.id) AS comments_count, ');
+    if is_user_provided then
+		set @sql_query = concat(@sql_query, ' EXISTS(SELECT 1 FROM reaction WHERE ownerId = "', userId, '" AND creationId = c.id) AS isReactionActive ');
+	else
+		set @sql_query = concat(@sql_query, ' FALSE as isReactionActive ');
+	end if;
+    set @sql_query = concat(
+    @sql_query,
+    ' FROM creation c ',
+    'LEFT JOIN comment cm ON c.id = cm.creationId ',
+    'LEFT JOIN reaction r ON c.id = r.creationId ', 
+    'LEFT JOIN user uc ON c.ownerId = uc.id ',
+    'LEFT JOIN user ucm ON cm.ownerId = ucm.id ',
+    'GROUP BY c.id, c.title, c.description, c.createdAt, c.updatedAt ',
+	OrderByClause('c','updatedAt', sort_name),
+    LimitClause(page_number, per_page));
+    
+    prepare stmt FROM @sql_query;
+	execute stmt;
+    DEALLOCATE PREPARE stmt;
+END
+
+-- % CreationsGetById Stored Procedure v2
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `creation_get_sp`(
+in userId varchar(191),
+in id varchar(191)
+)
+BEGIN
+declare is_user_provided boolean default false;
+	if userId is not null
+	then set is_user_provided = true;
+end if;
+set @id = id;
+set @sql_query = concat(
+    'SELECT c.id as creation_id, ',
+    'uc.id as owner_id, ',
+    'uc.name as owner_name, ',
+    'uc.image as owner_image, ',
+    'c.title, ',
+    'c.description, ', 
+    'c.createdAt as creation_createdAt, ', 
+    'c.updatedAt as creation_updatedAt, ',
+    '(select COUNT(r.id) from reaction r where r.creationId = c.id) as reactions_count, ',
+	'(select COUNT(cm.id) from comment cm where cm.creationId = c.id) as comments_count, ');
+if is_user_provided 
+then set @sql_query = concat(@sql_query, 'EXISTS(select 1 from reaction  where creationId = c.id and ownerId = "', userId, '" ) as isReactionActive, ');
+else set @sql_query = concat(@sql_query, 'FALSE as isReactionActive, ');
+end if;
+set @sql_query =concat(
+		@sql_query,
+        'JSON_ARRAYAGG( ',
+		'    JSON_OBJECT( ',
+		'        "comment_id", cm.id, ',
+		'        "comment_opinion", cm.opinion, ',
+		'        "comment_owner_id", ucm.id, ',
+		'		 "comment_owner_name", ucm.name, ',
+		'		 "comment_owner_image", ucm.image, ',
+		'        "comment_createdAt", cm.createdAt, ',
+		'        "comment_updatedAt", cm.updatedAt ',
+		'    ) ',
+		') AS comments ',
+    ' FROM creation c ',
+    'LEFT JOIN comment cm ON c.id = cm.creationId ',
+    'LEFT JOIN reaction r ON c.id = r.creationId ', 
+    'LEFT JOIN user uc ON c.ownerId = uc.id ',
+    'LEFT JOIN user ucm ON cm.ownerId = ucm.id ',
+	'WHERE c.id = ? ',
+    'GROUP BY c.id, c.title, c.description, c.createdAt, c.updatedAt ');
+    PREPARE stmt FROM @sql_query;
+    EXECUTE stmt USING @id; 
     DEALLOCATE PREPARE stmt;
 END
