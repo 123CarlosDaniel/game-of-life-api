@@ -328,3 +328,55 @@ set @sql_query =concat(
     EXECUTE stmt USING @id; 
     DEALLOCATE PREPARE stmt;
 END
+
+-- % CreationsGetByOwner Stored Procedure v2
+CREATE DEFINER=`root`@`localhost` PROCEDURE `creations_get_by_owner_sp`(
+ in userId varchar(191),
+ in id varchar(191) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+ in page_number int, 
+ in per_page int, 
+ in sort_name varchar(4),
+ out pages int)
+BEGIN
+	declare total_rows int default 0;
+    declare is_user_provided boolean default false;
+    
+    if userId is not null then
+		set is_user_provided = true;
+	end if;
+    
+    set @id = id;
+    select COUNT(*) into total_rows from creation WHERE ownerId = id;
+    set pages = Pages(total_rows, per_page);
+    
+set @sql_query = concat(
+    'SELECT c.id as creation_id, ',
+    'uc.id as owner_id, ',
+    'uc.name as owner_name, ',
+    'uc.image as owner_image, ',
+    'c.title, ',
+    'c.description, ', 
+    'c.createdAt as creation_createdAt, ', 
+    'c.updatedAt as creation_updatedAt, ',
+    '(select COUNT(r.id) from reaction r where r.creationId = c.id) as reactions_count, ',
+    '(select COUNT(cm.id) from comment cm where cm.creationId = c.id) AS comments_count, ');
+if is_user_provided then
+	set @sql_query = concat(@sql_query, ' EXISTS(SELECT 1 FROM reaction WHERE ownerId = "', userId, '" AND creationId = c.id) AS isReactionActive ');
+else
+	set @sql_query = concat(@sql_query, ' FALSE as isReactionActive ');
+end if;
+set @sql_query = concat(
+	@sql_query,
+    ' FROM creation c ',
+    'LEFT JOIN comment cm ON c.id = cm.creationId ',
+    'LEFT JOIN reaction r ON c.id = r.creationId ', 
+    'LEFT JOIN user uc ON c.ownerId = uc.id ',
+    'WHERE c.ownerId = ? ',
+    'GROUP BY c.id, c.title, c.description, c.createdAt, c.updatedAt ',
+	OrderByClause('c','updatedAt', sort_name),
+    LimitClause(page_number, per_page));
+
+    prepare stmt FROM @sql_query;
+	execute stmt USING @id;
+    DEALLOCATE PREPARE stmt;
+END
