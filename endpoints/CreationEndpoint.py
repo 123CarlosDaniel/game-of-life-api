@@ -42,8 +42,9 @@ def creations_by_owner(
   page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
   per_page: int = Query(10, description="Number of creations per page, must be >= 1", ge=1),
   sort_by: str = Query("asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
+  current_user: dict = Depends(get_current_user_optional),
   db: Session = Depends(get_db)):
-  return get_creations_by_owner(ownerId, page_number, per_page, sort_by, db)
+  return get_creations_by_owner(ownerId, page_number, per_page, sort_by, current_user.get("id"), db)
 
 
 @router.post("", response_model=PostResponseModel, responses={

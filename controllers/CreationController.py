@@ -59,7 +59,7 @@ def get_creation(id: str, userId: str | None, db: Session):
   return creation
 
 
-def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_by: str, db: Session):
+def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_by: str, userId: str | None, db: Session):
   try:
     user = db.execute(text("select 1 from user where id = :id"),
                       {"id": ownerId}).fetchone()
@@ -67,8 +67,9 @@ def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_b
       raise HTTPException(404, "Not found")
 
     result = db.execute(text(
-      "call creations_get_by_owner_sp(:ownerId, :page_number, :per_page, :sort_by, @pages)"),
+      "call creations_get_by_owner_sp(:userId, :ownerId, :page_number, :per_page, :sort_by, @pages)"),
         {
+          "userId": userId,
           "ownerId": ownerId,
           "page_number": page_number,
           "per_page": per_page,
@@ -87,7 +88,8 @@ def get_creations_by_owner(ownerId: str, page_number: int, per_page: int, sort_b
         "createdAt": str(creation.creation_createdAt),
         "updatedAt": str(creation.creation_updatedAt),
         "reactions": creation.reactions_count,
-        "comments": creation.comments_count
+        "comments": creation.comments_count,
+        "isReactionActive": bool(creation.isReactionActive)
       } for creation in creations]
     return {
       "data": creations,
