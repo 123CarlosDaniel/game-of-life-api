@@ -10,16 +10,20 @@ from dependencies.getUser import get_current_user, get_current_user_optional
 
 router = APIRouter(prefix="/creation")
 
-@router.get("/all", response_model=GetListResponseModel[CreationGetAllModel], responses={
+
+@router.get("/all", response_model=GetListResponseModel[CreationGetAllModel],
+            responses={
   500: {"model": ErrorResponse, "description": "Internal server error"}
 })
 def creations_get(
-  page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
-  per_page: int = Query(10, description="Number of creations per page, must be >= 1", ge=1),
-  sort_by: str = Query("asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
+  page: int = Query(1, description="Page number, must be >= 1", ge=1),
+  per_page: int = Query(
+    10, description="Number of creations per page, must be >= 1", ge=1),
+  sort_by: str = Query(
+    "asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
   current_user: dict = Depends(get_current_user_optional),
   db: Session = Depends(get_db)):
-  return get_creations(db, current_user.get("id"), page_number, per_page, sort_by)
+  return get_creations(db, current_user.get("id"), page, per_page, sort_by)
 
 
 @router.get("/{id}", response_model=CreationGetModel, responses={
@@ -38,13 +42,15 @@ def creation_get(
   404: {"model": ErrorResponse, "description": "Not found"}
 })
 def creations_by_owner(
-  ownerId: str,
-  page_number: int = Query(1, description="Page number, must be >= 1", ge=1),
-  per_page: int = Query(10, description="Number of creations per page, must be >= 1", ge=1),
-  sort_by: str = Query("asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
+  owner_id: str,
+  page: int = Query(1, description="Page number, must be >= 1", ge=1),
+  per_page: int = Query(
+    10, description="Number of creations per page, must be >= 1", ge=1),
+  sort_by: str = Query(
+    "asc", description="Sort by 'asc' or 'desc'", enum=["asc", "desc"]),
   current_user: dict = Depends(get_current_user_optional),
   db: Session = Depends(get_db)):
-  return get_creations_by_owner(ownerId, page_number, per_page, sort_by, current_user.get("id"), db)
+  return get_creations_by_owner(owner_id, page, per_page, sort_by, current_user.get("id"), db)
 
 
 @router.post("", response_model=PostResponseModel, responses={
