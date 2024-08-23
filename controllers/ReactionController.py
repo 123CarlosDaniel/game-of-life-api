@@ -11,11 +11,14 @@ def post_reaction(creationId: str, userId: str, db: Session):
                           {"id": creationId}).fetchone()
     if not creation:
       raise HTTPException(404, "Not found")
-
+    reaction = db.execute(text("SELECT 1 FROM reaction WHERE creationId = :id and ownerId = :userId"),
+                          {"id": creationId, "userId": userId}).fetchone()
+    if reaction:
+      raise HTTPException(409, "Already reacted")
     reactionId = cuid_generator.generate()
     db.execute(text("""INSERT INTO reaction (id, ownerId, creationId)
                       VALUES (:id, :userId, :creationId)"""),
-              {"id": reactionId, "userId": userId, "creationId": creationId})
+               {"id": reactionId, "userId": userId, "creationId": creationId})
     db.commit()
     return {"id": reactionId, "message": "Created successfully"}
   except SQLAlchemyError as e:
@@ -43,9 +46,9 @@ def delete_reaction_by_creation(creationId: str, userId: str, db: Session):
                           {"id": creationId, "userId": userId}).fetchone()
     if not reaction:
       raise HTTPException(404, "Not found")
-    
+
     db.execute(text("DELETE FROM reaction WHERE id = :id"),
-              {"id": reaction[0]})
+               {"id": reaction[0]})
     db.commit()
     return {"message": "Deleted successfully"}
   except SQLAlchemyError as e:

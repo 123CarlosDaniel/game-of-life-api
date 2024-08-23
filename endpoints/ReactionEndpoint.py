@@ -11,6 +11,7 @@ router = APIRouter(prefix="/reaction")
 @router.post("", responses={
   404: {"model": ReactionModel, "description": "Not found"},
   401: {"model": ErrorResponse, "description": "Unauthorized"},
+  409: {"model": ErrorResponse, "description": "Already reacted"},
   500: {"model": ErrorResponse, "description": "Internal server error"}
 })
 def reactions_post(
