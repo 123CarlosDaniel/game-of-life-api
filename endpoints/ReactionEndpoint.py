@@ -3,11 +3,16 @@ from sqlalchemy.orm import Session
 from config.db import get_db
 from dependencies.getUser import get_current_user
 from models.request import ReactionModel
+from models.common import ErrorResponse
 from controllers.ReactionController import post_reaction, delete_reaction, delete_reaction_by_creation
 
 router = APIRouter(prefix="/reaction")
 
-@router.post("")
+@router.post("", responses={
+  404: {"model": ReactionModel, "description": "Not found"},
+  401: {"model": ErrorResponse, "description": "Unauthorized"},
+  500: {"model": ErrorResponse, "description": "Internal server error"}
+})
 def reactions_post(
   creation_id: str,
   current_user: dict = Depends(get_current_user),
