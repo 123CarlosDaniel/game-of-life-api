@@ -154,8 +154,15 @@ def save_data(id, data: CreationDataModel, userId, db: Session):
   db.execute(text("""
                   UPDATE creation SET data = :data
                   WHERE id = :id
-                  """), {"id": id, "data": data.data})
+                  """), {"id": id, "data": json.dumps({"data" : data.data})})
 
   db.commit()
   return {"message": "Updated successfully"}
 
+def get_data(id, db: Session):
+  creation_data = db.execute(text("SELECT data FROM creation WHERE id = :id"), 
+                             {"id": id}).fetchone()
+  if not creation_data:
+    raise HTTPException(404, "Not found")
+  data = json.loads(creation_data.data)
+  return data

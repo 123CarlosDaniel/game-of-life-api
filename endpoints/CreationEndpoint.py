@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query 
 from sqlalchemy.orm import Session
 from config.db import get_db
-from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation, save_data
-from models.response import CreationGetAllModel, CreationGetModel
+from controllers.CreationController import get_creations, post_creation, get_creation, get_creations_by_owner, update_creation, delete_creation, save_data, get_data
+from models.response import CreationGetAllModel, CreationGetModel, CreationDataGetModel
 from models.request import CreationCreateModel, CreationDataModel
 from models.common import GetListResponseModel, ErrorResponse, PostResponseModel
 
@@ -88,6 +88,7 @@ def creation_delete(
   db: Session = Depends(get_db)):
   return delete_creation(id, current_user.get("id"), db)
 
+
 @router.post("/{id}/save_data", responses={
   500: {"model": ErrorResponse, "description": "Internal server error"},
   404: {"model": ErrorResponse, "description": "Not found"},
@@ -100,8 +101,12 @@ def creation_save_data(
   db: Session = Depends(get_db)):
   return save_data(id, data, current_user.get("id"), db)
 
-@router.get("/{id}/get_data")
+
+@router.get("/{id}/get_data",  responses={
+  500: {"model": ErrorResponse, "description": "Internal server error"},
+  404: {"model": ErrorResponse, "description": "Not found"}
+})
 def creation_get_data(
   id: str,
   db: Session = Depends(get_db)):
-  raise HTTPException(501, "Not implemented")
+  return get_data(id, db)

@@ -28,3 +28,6 @@ class CreationGetModel(BaseModel):
   comments: int
   commentsList: list[dict]
   isReactionActive: bool
+  
+class CreationDataGetModel(BaseModel):
+  data: str
