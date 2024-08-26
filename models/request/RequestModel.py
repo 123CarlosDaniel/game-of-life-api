@@ -12,3 +12,6 @@ class CreationCreateModel(BaseModel):
 
 class ReactionModel(BaseModel):
   reaction: str
+
+class CreationDataModel(BaseModel):
+  data: str

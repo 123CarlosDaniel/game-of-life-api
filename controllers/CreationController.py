@@ -4,6 +4,7 @@ from sqlalchemy import text
 from utils.generateId import cuid_generator
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
+from models.request import CreationDataModel
 
 
 def get_creations(db: Session, userId: str | None, page_number: int, per_page: int, sort_by: str):
@@ -143,3 +144,18 @@ def delete_creation(id, userId, db: Session):
 
   db.commit()
   return {"message": "Deleted successfully"}
+
+def save_data(id, data: CreationDataModel, userId, db: Session):
+  creation_found = db.execute(text("SELECT 1 FROM creation WHERE id = :id AND ownerId = :ownerId"),
+                              {"id": id, "ownerId": userId}).fetchone()
+  if not creation_found:
+    raise HTTPException(404, "Not found")
+
+  db.execute(text("""
+                  UPDATE creation SET data = :data
+                  WHERE id = :id
+                  """), {"id": id, "data": data.data})
+
+  db.commit()
+  return {"message": "Updated successfully"}
+
