@@ -164,5 +164,7 @@ def get_data(id, db: Session):
                              {"id": id}).fetchone()
   if not creation_data:
     raise HTTPException(404, "Not found")
+  if not creation_data.data:
+    return {"data": "[]"}
   data = json.loads(creation_data.data)
   return data
