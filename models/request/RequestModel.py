@@ -7,7 +7,6 @@ class CommentModel(BaseModel):
 class CreationCreateModel(BaseModel):
   title : str
   description : str
-  data : str
   
 
 class ReactionModel(BaseModel):

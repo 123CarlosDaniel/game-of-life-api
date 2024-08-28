@@ -55,7 +55,9 @@ def creations_by_owner(
 
 
 @router.post("", response_model=PostResponseModel, responses={
-  500: {"model": ErrorResponse, "description": "Internal server error"}
+  500: {"model": ErrorResponse, "description": "Internal server error"},
+  404: {"model": ErrorResponse, "description": "Not found"},
+  401: {"model": ErrorResponse, "description": "Unauthorized"}
 })
 def creation_post(
   creation: CreationCreateModel,

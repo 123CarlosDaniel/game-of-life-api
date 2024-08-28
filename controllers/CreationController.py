@@ -103,14 +103,13 @@ def post_creation(creation, userId, db: Session):
   try:
     creationId = cuid_generator.generate()
     db.execute(
-      text("""INSERT INTO creation (id, ownerId, title, description, data) 
-          VALUES (:id, :ownerId, :title, :description, :data)
+      text("""INSERT INTO creation (id, ownerId, title, description) 
+          VALUES (:id, :ownerId, :title, :description)
           """),
       {"id": creationId,
        "ownerId": userId,
        "title": creation.title,
-       "description": creation.description,
-       "data": creation.data}
+       "description": creation.description}
     )
     db.commit()
     return {"id": creationId, "message": "Created successfully"}
@@ -126,9 +125,9 @@ def update_creation(id, creation, userId, db: Session):
     raise HTTPException(404, "Not found")
 
   db.execute(text("""
-                  UPDATE creation SET title = :title, description = :description, data = :data
+                  UPDATE creation SET title = :title, description = :description 
                   WHERE id = :id
-                  """), {"id": id, "title": creation.title, "description": creation.description, "data": creation.data})
+                  """), {"id": id, "title": creation.title, "description": creation.description})
 
   db.commit()
   return {"message": "Updated successfully"}
