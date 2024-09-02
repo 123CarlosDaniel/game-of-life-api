@@ -51,7 +51,7 @@ def get_current_user_optional(
 
     user = db.execute(text("select 1 from user where id = :id"), {"id": user_id}).fetchone()
     if not user:
-      return {"error": "User not found"}, 404
+      return {"id": None}
 
     return {"id": user_id}
   except JWTError:
