@@ -32,6 +32,7 @@ def get_creations(db: Session, userId: str | None, page_number: int, per_page: i
       "pages": pages
     }
   except SQLAlchemyError as e:
+    print(e)
     raise HTTPException(500, "Internal server error")
 
 
